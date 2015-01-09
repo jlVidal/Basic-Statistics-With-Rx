@@ -1,0 +1,221 @@
+﻿<Window x:Class="RxStatistics.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:my="clr-namespace:RxStatistics.WPF" WindowStartupLocation="CenterScreen"
+        xmlns:sparrow="http://sparrowtoolkit.codeplex.com/wpf"
+        Title="Statistics Data" Height="400" Width="666">
+    <Window.Resources>
+        <my:InverseBooleanConverter x:Key="InverseBoolConv"/>
+        <my:ToStringFormatOneWayConverter x:Key="ToStringConv"/>
+        <DataTemplate x:Key="CurrencyFormatDataTemplate">
+            <TextBlock Text="{Binding StringFormat=C2}"/>
+        </DataTemplate>
+        <Style TargetType="ListBox">
+            <Setter  Property="VirtualizingPanel.VirtualizationMode" Value="Recycling"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <TabControl>
+            <TabItem Header="Basic Usage" DataContext="{Binding SimpleVm, Mode=OneWay}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="5"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.ColumnSpan="10">
+                        <TextBlock Text="Value: $" VerticalAlignment="Center" Margin="2,0,0,0"/>
+                        <DockPanel>
+                            <StackPanel KeyboardNavigation.TabIndex="2" DockPanel.Dock="Right" Orientation="Horizontal">
+                                <Button IsDefault="True" Content="Add" Command="{Binding InsertValueCommand}" Margin="5,0,0,0" Width="60" IsEnabled="{Binding ElementName=TxtValue, Path=(Validation.HasError), Converter={StaticResource InverseBoolConv}}">
+                                </Button>
+                                <Button Content="Clear" Command="{Binding ClearStatisticsCommand}" Margin="5,0,0,0" Width="60">
+                                </Button>
+                            </StackPanel>
+                            <TextBox my:AttachedProperties.UpdateSourceOnKey="Enter" KeyboardNavigation.TabIndex="1" x:Name="TxtValue" Text="{Binding Value, StringFormat=N2}"/>
+                        </DockPanel>
+                    </DockPanel>
+                    <DockPanel Grid.Row="2">
+                        <TextBlock Text="History" VerticalAlignment="Center" HorizontalAlignment="Center" DockPanel.Dock="Top">
+                        </TextBlock>
+                        <ListBox Width="100" ItemsSource="{Binding Pairs, Mode=OneWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <Run Text="{Binding Key, Mode=OneWay}"/>
+                                        <Run Text=" | "/>
+                                        <Run Text="{Binding Value, Mode=OneWay,StringFormat=C2}"/>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+
+                    <Grid Grid.Row="2" Grid.Column="2">
+                        <DockPanel>
+                            <TextBlock HorizontalAlignment="Center" DockPanel.Dock="Top">
+                                <Run Text="Statistics for:"/>
+                                <Run Text="{Binding Counter.Count, Mode=OneWay}"/>
+                                <Run Text="elements."/>
+                            </TextBlock>
+                            <UniformGrid Rows="2">
+                                <DockPanel>
+                                    <TextBlock Text="Sum" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                                    <ListBox ItemsSource="{Binding Sum}" ItemTemplate="{StaticResource CurrencyFormatDataTemplate}">
+
+                                    </ListBox>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Average" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                                    <ListBox  ItemsSource="{Binding Average}" ItemTemplate="{StaticResource CurrencyFormatDataTemplate}"  Margin="5,0,5,0">
+
+                                    </ListBox>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Min" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                                    <ListBox  ItemsSource="{Binding Min}" ItemTemplate="{StaticResource CurrencyFormatDataTemplate}">
+
+                                    </ListBox>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Max" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                                    <ListBox  ItemsSource="{Binding Max}" ItemTemplate="{StaticResource CurrencyFormatDataTemplate}">
+
+                                    </ListBox>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Median" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                                    <ListBox  ItemsSource="{Binding Median}" ItemTemplate="{StaticResource CurrencyFormatDataTemplate}" Margin="5,0">
+
+                                    </ListBox>
+                                </DockPanel>
+                                <DockPanel>
+                                    <TextBlock Text="Moda" HorizontalAlignment="Center" DockPanel.Dock="Top"/>
+                                    <ListBox ItemsSource="{Binding ModaText}">
+
+                                    </ListBox>
+                                </DockPanel>
+                            </UniformGrid>
+                        </DockPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Time Usage" DataContext="{Binding TimeVm, Mode=OneWay}" IsSelected="{Binding IsActive, Mode=OneWayToSource}">
+                <Grid >
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="Loaded">
+                            <i:InvokeCommandAction Command="{Binding LoadedCommand}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="5"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Expander Header="Config ">
+                        <StackPanel>
+                            <GroupBox Header="Random Data" IsEnabled="{Binding DataServiceVm.IsRunning, Converter={StaticResource InverseBoolConv}}">
+                                <StackPanel DataContext="{Binding ConfigVm}" >
+                                    <UniformGrid Rows="1">
+                                        <RadioButton Content="Low (1 to 5 per Second)" GroupName="Rate" IsChecked="{Binding Slow}"/>
+                                        <RadioButton Content="High (6 to 20 per Second)" GroupName="Rate" IsChecked="{Binding Fast}"/>
+                                    </UniformGrid>
+                                    <UniformGrid Rows="1" Margin="0,5,0,0">
+                                        <DockPanel>
+                                            <TextBlock Text="Minimum: $"/>
+                                            <TextBox my:AttachedProperties.UpdateSourceOnKey="Enter"  x:Name="TxtMinimumValue" Margin="0,0,5,0" Text="{Binding Minimum, StringFormat=N2}"/>
+                                        </DockPanel>
+                                        <DockPanel>
+                                            <TextBlock Text="Maximum: $"/>
+                                            <TextBox my:AttachedProperties.UpdateSourceOnKey="Enter"  x:Name="TxtMaximumValue" Margin="0,0,5,0" Text="{Binding Maximum, StringFormat=N2}"/>
+                                        </DockPanel>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </GroupBox>
+                            <UniformGrid Rows="1" >
+                                <Button Content="Start" IsEnabled="{Binding DataServiceVm.IsRunning, Converter={StaticResource InverseBoolConv}}" Margin="5" Command="{Binding DataServiceVm.StartCommand}"/>
+                                <Button Content="Stop" IsEnabled="{Binding DataServiceVm.IsRunning}" Margin="5" Command="{Binding DataServiceVm.StopCommand}"/>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Expander>
+                    <Grid Grid.Row="2" DataContext="{Binding DashboardVm}">
+                        <DockPanel>
+                            <ListBox Height="100" HorizontalContentAlignment="Center" DockPanel.Dock="Top" ItemsSource="{Binding MonitoredItems}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                <ListBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1"/>
+                                    </ItemsPanelTemplate>
+                                </ListBox.ItemsPanel>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Width="130"  VerticalAlignment="Stretch" Margin="5,10">
+                                            <Grid x:Name="normalGrid" Background="CornflowerBlue">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="30"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Label Grid.Row="0" Grid.ColumnSpan="2"  FontSize="14" FontFamily="Segoe UI" Content="{Binding Key}" 
+                               Foreground="White"
+                               HorizontalAlignment="Left"
+                               Margin="5,5,0,5"></Label>
+
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0"  FontSize="18" FontFamily="Segoe UI" 
+                               Foreground="Green" TextWrapping="Wrap"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Margin="5">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource ToStringConv}">
+                                                            <Binding Path="ValueObject" Mode="OneWay"></Binding>
+                                                            <Binding Path="Format" Mode="OneWay"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+
+                                            </Grid>
+
+                                        </Grid>
+
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+
+                            </ListBox>
+
+                            <DockPanel Margin="0,0,0,0">
+                                <sparrow:SparrowChart x:Name="ChartComp" Margin="0,0,24,0" >
+                                    <sparrow:SparrowChart.XAxis>
+                                        <sparrow:DateTimeXAxis StringFormat="HH:mm:sss" >
+                                        </sparrow:DateTimeXAxis>
+                                    </sparrow:SparrowChart.XAxis>
+                                    <sparrow:SparrowChart.YAxis>
+                                        <sparrow:LinearYAxis StringFormat="C2" >
+                                        </sparrow:LinearYAxis>
+                                    </sparrow:SparrowChart.YAxis>
+                                    <sparrow:SparrowChart.Legend>
+                                        <sparrow:Legend Dock="Top"></sparrow:Legend>
+                                    </sparrow:SparrowChart.Legend>
+                                <sparrow:AreaSeries x:Name="ChartSeries"  Label="Performance"  PointsSource="{Binding ChartValues, Mode=OneWay}" XPath="Key" YPath="Value">
+
+                                </sparrow:AreaSeries>
+                                </sparrow:SparrowChart>
+                            </DockPanel>
+                        </DockPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
