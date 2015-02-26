@@ -63,7 +63,7 @@ namespace RxStatistics.WPF
         {
             var compDisp = new System.Reactive.Disposables.CompositeDisposable();
             compDisp.Add(
-                this.ChartValues.CountChanged.Where(a => a > 250)
+                this.ChartValues.CountChanged.Where(a => a > 500)
                                               .Do(a => this._chartValues.RemoveAt(0))
                                               .Subscribe()
                                           );
@@ -121,22 +121,24 @@ namespace RxStatistics.WPF
 
             var sx = this._dashboardVm.Data.Window(Observable.Defer(() =>
             {
-                var rest = 60 - DateTime.Now.Second;
-                return Observable.Timer(TimeSpan.FromSeconds(rest));
+                var now = DateTime.Now;
+                var rest = now.AddSeconds(-now.Second).AddMinutes(1) - now;
+                return Observable.Timer(rest);
             }).Repeat()).Publish();
 
             compDisp.Add(
-                sx.Select(a => a.Sum())
-                    .Merge()
-                    .LiveAverage()
-                    .Merge(sx.Take(1)
-                                .Select(a => a.LiveSum())
-                                .Switch()
-                                .Sample(TimeSpan.FromMilliseconds(TimeToReadData)))
-                    .DistinctUntilChanged()
-                    .ObserveOnDispatcher()
-                    .Do(a => incomeAveragePerMinute.Value = a)
-                    .Subscribe()
+                        sx.Select(a => a.Sum())
+                            .Merge()
+                            .Skip(1)
+                            .LiveAverage()
+                            .Merge(sx.Take(1)
+                                        .Select(a => a.LiveSum())
+                                        .Switch()
+                                        .Sample(TimeSpan.FromMilliseconds(TimeToReadData)))
+                            .DistinctUntilChanged()
+                            .ObserveOnDispatcher()
+                            .Do(a => incomeAveragePerMinute.Value = a)
+                            .Subscribe()
                         );
 
             compDisp.Add(sx.Connect());

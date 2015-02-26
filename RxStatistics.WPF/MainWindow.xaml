@@ -33,7 +33,7 @@
                         <TextBlock Text="Value: $" VerticalAlignment="Center" Margin="2,0,0,0"/>
                         <DockPanel>
                             <StackPanel KeyboardNavigation.TabIndex="2" DockPanel.Dock="Right" Orientation="Horizontal">
-                                <Button IsDefault="True" Content="Add" Command="{Binding InsertValueCommand}" Margin="5,0,0,0" Width="60" IsEnabled="{Binding ElementName=TxtValue, Path=(Validation.HasError), Converter={StaticResource InverseBoolConv}}">
+                                <Button IsDefault="True" x:Name="Btn" Content="Add" Command="{Binding InsertValueCommand}" Margin="5,0,0,0" Width="60" IsEnabled="{Binding ElementName=TxtValue, Path=(Validation.HasError), Converter={StaticResource InverseBoolConv}}">
                                 </Button>
                                 <Button Content="Clear" Command="{Binding ClearStatisticsCommand}" Margin="5,0,0,0" Width="60">
                                 </Button>

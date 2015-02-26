@@ -25,6 +25,21 @@ namespace RxStatistics.WPF
             InitializeComponent();
             this.DataContext = new MainViewModel();
 
+
+            var task = WhenClickOnce(this.Btn);
+        }
+
+        public static Task<RoutedEventArgs> WhenClickOnce(Button btn)
+        {
+            var tcs = new TaskCompletionSource<RoutedEventArgs>();
+            RoutedEventHandler handler = null;
+            handler = new RoutedEventHandler((s, e) =>
+                {
+                    tcs.SetResult(e);
+                    btn.Click -= handler;
+                });
+            btn.Click += handler;
+            return tcs.Task;
         }
     }
 }
